@@ -31,8 +31,8 @@ const Navbar = () => {
               <span className="text-white font-bold text-xl">A</span>
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-800">Attendance System</h1>
-              <p className="text-xs text-gray-500">Management Portal</p>
+              <h1 className="text-lg font-bold text-gray-800">AttendEase</h1>
+              {/* <p className="text-xs text-gray-500">Management Portal</p> */}
             </div>
           </div>
 
