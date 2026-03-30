@@ -14,20 +14,21 @@ const generateToken = (id) => {
 const registerAdmin = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+        console.log("Ashish")
 
     // Check if admin already exists
-    const adminExists = await User.findOne({ role: 'admin' });
+    const adminExists = await User.findOne({ email });
     if (adminExists) {
       return res.status(400).json({ message: 'Admin already exists' });
     }
-
+    console.log("Ashish")
     const user = await User.create({
       name,
       email,
       password,
       role: 'admin'
     });
-
+    
     res.status(201).json({
       _id: user._id,
       name: user.name,

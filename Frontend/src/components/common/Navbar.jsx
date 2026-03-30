@@ -32,7 +32,7 @@ const Navbar = () => {
             </div>
             <div>
               <h1 className="text-lg font-bold text-gray-800">AttendEase</h1>
-              {/* <p className="text-xs text-gray-500">Management Portal</p> */}
+              {/* <p className="text-xs text-gray-500">Management Portal</p>   */}
             </div>
           </div>
 
