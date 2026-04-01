@@ -34,8 +34,9 @@ const AttendanceHistory = () => {
       if (filters.semester) params.append('semester', filters.semester);
       if (filters.startDate) params.append('startDate', filters.startDate);
       if (filters.endDate) params.append('endDate', filters.endDate);
-
+      
       const { data } = await API.get(`/attendance/history?${params.toString()}`);
+      
       setHistory(data);
     } catch (error) {
       toast.error('Failed to fetch history');
@@ -154,6 +155,7 @@ const AttendanceHistory = () => {
                     >
                       <span>{r.status === 'present' ? '✓' : '✕'}</span>
                       <span>{r.student?.rollNumber || 'N/A'}</span>
+                      <span>{r.student?.name || 'N/A'}</span>
                     </div>
                   ))}
                 </div>

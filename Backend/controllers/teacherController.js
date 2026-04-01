@@ -15,7 +15,7 @@ const addStudent = async (req, res) => {
     if (studentExists) {
       return res.status(400).json({ message: 'Student with this roll number or email already exists' });
     }
-
+    
     // Create user account for student
     const userExists = await User.findOne({ 
       $or: [{ email }, { rollNumber }] 
@@ -23,7 +23,7 @@ const addStudent = async (req, res) => {
     if (userExists) {
       return res.status(400).json({ message: 'User account already exists' });
     }
-
+    
     const user = await User.create({
       name,
       email,
@@ -32,7 +32,7 @@ const addStudent = async (req, res) => {
       rollNumber,
       semester
     });
-
+    console.log("Ashish");
     // Create student record
     const student = await Student.create({
       name,

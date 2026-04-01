@@ -3,6 +3,7 @@ const Student = require('../models/Student');
 const Subject = require('../models/Subject');
 const Attendance = require('../models/Attendance');
 const { sendShortAttendanceEmail } = require('../utils/emailService');
+const mongoose = require('mongoose');
 
 // @desc    Register a teacher
 // @route   POST /api/admin/register-teacher
@@ -160,17 +161,19 @@ const getAllStudents = async (req, res) => {
 const getAttendanceReport = async (req, res) => {
   try {
     const { semester, subjectId, belowPercentage } = req.query;
-
+    console.log("erroe in report")
     let matchQuery = {};
     if (semester) matchQuery.semester = parseInt(semester);
-    if (subjectId) matchQuery.subject = require('mongoose').Types.ObjectId(subjectId);
-
+    if (subjectId && mongoose.Types.ObjectId.isValid(subjectId)) {
+      matchQuery.subject = subjectId;
+    }
+    console.log("erroe in report")
     const attendanceRecords = await Attendance.find(matchQuery)
       .populate('subject', 'name code')
       .populate('records.student', 'name rollNumber email semester')
       .populate('markedBy', 'name')
       .sort({ date: -1 });
-
+      console.log("Ashish")
     // Calculate percentage per student per subject
     const studentStats = {};
 
@@ -215,6 +218,7 @@ const getAttendanceReport = async (req, res) => {
     res.json(report);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
+    console.log(error)
   }
 };
 
