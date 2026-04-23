@@ -3,7 +3,6 @@ const Student = require('../models/Student');
 const Subject = require('../models/Subject');
 const Attendance = require('../models/Attendance');
 const { sendShortAttendanceEmail } = require('../utils/emailService');
-const mongoose = require('mongoose');
 
 // @desc    Register a teacher
 // @route   POST /api/admin/register-teacher
@@ -66,7 +65,6 @@ const addSubject = async (req, res) => {
       teacher: teacherId || null
     });
 
-    // If teacher assigned, add subject to teacher's subjects array
     if (teacherId) {
       await User.findByIdAndUpdate(teacherId, {
         $push: {
@@ -103,20 +101,17 @@ const assignSubjectToTeacher = async (req, res) => {
       return res.status(404).json({ message: 'Subject not found' });
     }
 
-    // Check if already assigned
     const alreadyAssigned = teacher.subjects.some(
       s => s.subject.toString() === subjectId && s.semester === semester
     );
 
     if (alreadyAssigned) {
-      return res.status(400).json({ message: 'Subject already assigned to this teacher for this semester' });
+      return res.status(400).json({ message: 'Subject already assigned to this teacher' });
     }
 
-    // Update teacher
     teacher.subjects.push({ subject: subjectId, semester });
     await teacher.save();
 
-    // Update subject
     subject.teacher = teacherId;
     await subject.save();
 
@@ -156,69 +151,222 @@ const getAllStudents = async (req, res) => {
   }
 };
 
-// @desc    Get attendance report for all students
+// @desc    Get SUBJECT-WISE attendance report
 // @route   GET /api/admin/attendance-report
 const getAttendanceReport = async (req, res) => {
   try {
     const { semester, subjectId, belowPercentage } = req.query;
-    console.log("erroe in report")
-    let matchQuery = {};
-    if (semester) matchQuery.semester = parseInt(semester);
-    if (subjectId && mongoose.Types.ObjectId.isValid(subjectId)) {
-      matchQuery.subject = subjectId;
-    }
-    console.log("erroe in report")
-    const attendanceRecords = await Attendance.find(matchQuery)
-      .populate('subject', 'name code')
-      .populate('records.student', 'name rollNumber email semester')
-      .populate('markedBy', 'name')
-      .sort({ date: -1 });
-      console.log("Ashish")
-    // Calculate percentage per student per subject
-    const studentStats = {};
 
-    attendanceRecords.forEach(record => {
-      record.records.forEach(r => {
-        if (!r.student) return;
-        
-        const key = `${r.student._id}-${record.subject._id}`;
-        if (!studentStats[key]) {
-          studentStats[key] = {
-            student: r.student,
-            subject: record.subject,
-            totalClasses: 0,
-            presentCount: 0,
-            absentCount: 0
-          };
-        }
-        studentStats[key].totalClasses += 1;
-        if (r.status === 'present') {
-          studentStats[key].presentCount += 1;
-        } else {
-          studentStats[key].absentCount += 1;
-        }
+    // Build subject query
+    let subjectQuery = {};
+    if (semester) subjectQuery.semester = parseInt(semester);
+    if (subjectId) subjectQuery._id = subjectId;
+
+    const subjects = await Subject.find(subjectQuery).populate('teacher', 'name email');
+
+    const report = [];
+
+    for (const subject of subjects) {
+      // Get all students for this semester
+      const students = await Student.find({
+        semester: subject.semester,
+        isActive: true
+      }).sort({ rollNumber: 1 });
+
+      // Get all attendance records for this subject
+      const attendanceRecords = await Attendance.find({
+        subject: subject._id,
+        semester: subject.semester
+      }).sort({ date: 1 });
+
+      const totalClassesConducted = attendanceRecords.length;
+
+      // Calculate each student's attendance for this subject
+      const studentData = students.map(student => {
+        let presentCount = 0;
+        let absentCount = 0;
+        const dateRecords = [];
+
+        attendanceRecords.forEach(record => {
+          const studentRecord = record.records.find(
+            r => r.student.toString() === student._id.toString()
+          );
+          if (studentRecord) {
+            if (studentRecord.status === 'present') presentCount++;
+            else absentCount++;
+
+            dateRecords.push({
+              date: record.date,
+              status: studentRecord.status
+            });
+          }
+        });
+
+        const percentage = totalClassesConducted > 0
+          ? parseFloat(((presentCount / totalClassesConducted) * 100).toFixed(1))
+          : 0;
+
+        return {
+          studentId: student._id,
+          name: student.name,
+          rollNumber: student.rollNumber,
+          email: student.email,
+          totalClasses: totalClassesConducted,
+          presentCount,
+          absentCount,
+          percentage,
+          isShort: totalClassesConducted > 0 && percentage < 75,
+          dateRecords
+        };
       });
+
+      // Filter by belowPercentage if specified
+      let filteredStudents = studentData;
+      if (belowPercentage) {
+        filteredStudents = studentData.filter(
+          s => s.percentage < parseFloat(belowPercentage) && s.totalClasses > 0
+        );
+      }
+
+      // Only add subject to report if it has students matching criteria
+      if (!belowPercentage || filteredStudents.length > 0) {
+        report.push({
+          subject: {
+            _id: subject._id,
+            name: subject.name,
+            code: subject.code,
+            semester: subject.semester,
+            teacher: subject.teacher ? subject.teacher.name : 'Not Assigned'
+          },
+          totalClassesConducted,
+          totalStudents: students.length,
+          studentsPresent: studentData.filter(s => !s.isShort).length,
+          studentsShort: studentData.filter(s => s.isShort).length,
+          averageAttendance: studentData.length > 0
+            ? parseFloat(
+                (studentData.reduce((sum, s) => sum + s.percentage, 0) / studentData.length).toFixed(1)
+              )
+            : 0,
+          students: belowPercentage ? filteredStudents : studentData
+        });
+      }
+    }
+
+    // Sort by semester then by subject name
+    report.sort((a, b) => {
+      if (a.subject.semester !== b.subject.semester) {
+        return a.subject.semester - b.subject.semester;
+      }
+      return a.subject.name.localeCompare(b.subject.name);
     });
 
-    let report = Object.values(studentStats).map(stat => ({
-      ...stat,
-      percentage: stat.totalClasses > 0 
-        ? ((stat.presentCount / stat.totalClasses) * 100) 
-        : 0
-    }));
+    res.json({
+      filters: {
+        semester: semester || 'All',
+        subjectId: subjectId || 'All',
+        belowPercentage: belowPercentage || 'None'
+      },
+      totalSubjects: report.length,
+      generatedAt: new Date().toISOString(),
+      report
+    });
+  } catch (error) {
+    console.error('getAttendanceReport error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
 
-    // Filter by percentage if specified
-    if (belowPercentage) {
-      report = report.filter(r => r.percentage < parseFloat(belowPercentage));
+// @desc    Get short attendance students SUBJECT-WISE
+// @route   GET /api/admin/short-attendance
+const getShortAttendance = async (req, res) => {
+  try {
+    const { semester, subjectId, threshold } = req.query;
+    const thresholdValue = parseFloat(threshold) || 75;
+
+    let subjectQuery = {};
+    if (semester) subjectQuery.semester = parseInt(semester);
+    if (subjectId) subjectQuery._id = subjectId;
+
+    const subjects = await Subject.find(subjectQuery).populate('teacher', 'name email');
+
+    const shortAttendanceReport = [];
+
+    for (const subject of subjects) {
+      const students = await Student.find({
+        semester: subject.semester,
+        isActive: true
+      }).sort({ rollNumber: 1 });
+
+      const attendanceRecords = await Attendance.find({
+        subject: subject._id,
+        semester: subject.semester
+      }).sort({ date: 1 });
+
+      const totalClassesConducted = attendanceRecords.length;
+
+      if (totalClassesConducted === 0) continue;
+
+      const shortStudents = [];
+
+      students.forEach(student => {
+        let presentCount = 0;
+
+        attendanceRecords.forEach(record => {
+          const studentRecord = record.records.find(
+            r => r.student.toString() === student._id.toString()
+          );
+          if (studentRecord && studentRecord.status === 'present') {
+            presentCount++;
+          }
+        });
+
+        const percentage = parseFloat(
+          ((presentCount / totalClassesConducted) * 100).toFixed(1)
+        );
+
+        if (percentage < thresholdValue) {
+          shortStudents.push({
+            name: student.name,
+            rollNumber: student.rollNumber,
+            email: student.email,
+            totalClasses: totalClassesConducted,
+            presentCount,
+            absentCount: totalClassesConducted - presentCount,
+            percentage,
+            classesNeeded: Math.ceil(
+              ((thresholdValue / 100) * totalClassesConducted - presentCount) /
+              (1 - thresholdValue / 100)
+            )
+          });
+        }
+      });
+
+      if (shortStudents.length > 0) {
+        shortAttendanceReport.push({
+          subject: {
+            name: subject.name,
+            code: subject.code,
+            semester: subject.semester,
+            teacher: subject.teacher ? subject.teacher.name : 'Not Assigned'
+          },
+          totalClassesConducted,
+          totalStudentsInClass: students.length,
+          shortAttendanceCount: shortStudents.length,
+          threshold: thresholdValue,
+          students: shortStudents.sort((a, b) => a.percentage - b.percentage)
+        });
+      }
     }
 
-    // Sort by percentage ascending
-    report.sort((a, b) => a.percentage - b.percentage);
-
-    res.json(report);
+    res.json({
+      threshold: thresholdValue,
+      generatedAt: new Date().toISOString(),
+      totalSubjectsAffected: shortAttendanceReport.length,
+      report: shortAttendanceReport
+    });
   } catch (error) {
+    console.error('getShortAttendance error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
-    console.log(error)
   }
 };
 
@@ -226,7 +374,7 @@ const getAttendanceReport = async (req, res) => {
 // @route   POST /api/admin/send-short-attendance-email
 const sendShortAttendanceEmails = async (req, res) => {
   try {
-    const { students } = req.body; // Array of { email, name, subject, percentage }
+    const { students } = req.body;
 
     let successCount = 0;
     let failCount = 0;
@@ -262,7 +410,6 @@ const deleteTeacher = async (req, res) => {
     }
 
     await User.findByIdAndDelete(req.params.id);
-    // Remove teacher from subjects
     await Subject.updateMany({ teacher: req.params.id }, { teacher: null });
 
     res.json({ message: 'Teacher deleted successfully' });
@@ -280,7 +427,6 @@ const deleteSubject = async (req, res) => {
       return res.status(404).json({ message: 'Subject not found' });
     }
 
-    // Remove subject from teachers' subjects arrays
     await User.updateMany(
       { 'subjects.subject': req.params.id },
       { $pull: { subjects: { subject: req.params.id } } }
@@ -301,6 +447,7 @@ module.exports = {
   getAllSubjects,
   getAllStudents,
   getAttendanceReport,
+  getShortAttendance,
   sendShortAttendanceEmails,
   deleteTeacher,
   deleteSubject
