@@ -9,24 +9,21 @@ import Navbar from './components/common/Navbar';
 import Sidebar from './components/common/Sidebar';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
-// Pages
 import LoginPage from './pages/LoginPage';
 import AdminSetup from './pages/AdminSetup';
 
-// Admin Components
 import AdminDashboard from './components/admin/AdminDashboard';
 import ManageTeachers from './components/admin/ManageTeachers';
 import ManageSubjects from './components/admin/ManageSubjects';
 import ViewStudents from './components/admin/ViewStudents';
 import AttendanceReport from './components/admin/AttendanceReport';
+import PromoteStudents from './components/admin/PromoteStudents'; // NEW
 
-// Teacher Components
 import TeacherDashboard from './components/teacher/TeacherDashboard';
 import MarkAttendance from './components/teacher/MarkAttendance';
 import ManageStudents from './components/teacher/ManageStudents';
 import AttendanceHistory from './components/teacher/AttendanceHistory';
 
-// Student Components
 import StudentDashboard from './components/student/StudentDashboard';
 
 const DashboardLayout = ({ children }) => {
@@ -46,19 +43,15 @@ const DashboardLayout = ({ children }) => {
 const AppRoutes = () => {
   const { user, loading } = useAuth();
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
+  if (loading) return <LoadingSpinner />;
 
   return (
     <Routes>
-      {/* Public Routes */}
       <Route path="/login" element={
         user ? <Navigate to={`/${user.role}/dashboard`} replace /> : <LoginPage />
       } />
       <Route path="/admin-setup" element={<AdminSetup />} />
 
-      {/* Admin Routes */}
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <DashboardLayout><AdminDashboard /></DashboardLayout>
@@ -84,8 +77,12 @@ const AppRoutes = () => {
           <DashboardLayout><AttendanceReport /></DashboardLayout>
         </ProtectedRoute>
       } />
+      <Route path="/admin/promote-students" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <DashboardLayout><PromoteStudents /></DashboardLayout>
+        </ProtectedRoute>
+      } />
 
-      {/* Teacher Routes */}
       <Route path="/teacher/dashboard" element={
         <ProtectedRoute allowedRoles={['teacher']}>
           <DashboardLayout><TeacherDashboard /></DashboardLayout>
@@ -107,14 +104,12 @@ const AppRoutes = () => {
         </ProtectedRoute>
       } />
 
-      {/* Student Routes */}
       <Route path="/student/dashboard" element={
         <ProtectedRoute allowedRoles={['student']}>
           <DashboardLayout><StudentDashboard /></DashboardLayout>
         </ProtectedRoute>
       } />
 
-      {/* Default Route */}
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
@@ -132,9 +127,6 @@ function App() {
           hideProgressBar={false}
           newestOnTop
           closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
           pauseOnHover
           theme="colored"
         />
