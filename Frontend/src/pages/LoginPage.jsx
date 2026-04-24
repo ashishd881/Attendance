@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 
 const LoginPage = () => {
-  const [loginType, setLoginType] = useState('teacher'); // 'teacher', 'admin', 'student'
+  const [loginType, setLoginType] = useState('teacher');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -26,8 +26,8 @@ const LoginPage = () => {
     const credentials = {
       loginType,
       password: formData.password,
-      ...(loginType === 'student' 
-        ? { rollNumber: formData.rollNumber } 
+      ...(loginType === 'student'
+        ? { rollNumber: formData.rollNumber }
         : { email: formData.email })
     };
 
@@ -55,117 +55,116 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        {/* Logo Section */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg mb-4">
-            <span className="text-white font-bold text-2xl">A</span>
-          </div>
-          <h2 className="text-3xl font-bold text-gray-800">Welcome Back</h2>
-          <p className="text-gray-500 mt-2">Attendance Management System</p>
-        </div>
+    <div className="min-h-screen bg-[url('/background_img.jpeg')] bg-cover bg-center bg-no-repeat">
+      
+      {/* Dark Overlay */}
+      <div className="min-h-screen bg-black/50 flex items-center justify-center p-4">
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          {/* Login Type Tabs */}
-          <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
-            {['admin', 'teacher', 'student'].map((type) => (
-              <button
-                key={type}
-                onClick={() => setLoginType(type)}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 capitalize ${
-                  loginType === type
-                    ? 'bg-white text-indigo-700 shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                {type}
-              </button>
-            ))}
+        {/* Login Container */}
+        <div className="max-w-md w-full">
+
+          {/* Logo Section */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl shadow-lg mb-4">
+              <span className="text-white font-bold text-2xl">A</span>
+            </div>
+            <h2 className="text-3xl font-bold text-white">Welcome Back</h2>
+            <p className="text-gray-200 mt-2">Attendance Management System</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {loginType === 'student' ? (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Roll Number
-                </label>
-                <input
-                  type="text"
-                  name="rollNumber"
-                  value={formData.rollNumber}
-                  onChange={handleChange}
-                  placeholder="Enter your roll number"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
-                  required
-                />
-              </div>
-            ) : (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
-                  required
-                />
-              </div>
-            )}
+          {/* Card */}
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-8">
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
-                required
-              />
+            {/* Tabs */}
+            <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
+              {['admin', 'teacher', 'student'].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setLoginType(type)}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all capitalize ${
+                    loginType === type
+                      ? 'bg-white text-indigo-700 shadow-sm'
+                      : 'text-gray-500'
+                  }`}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 focus:ring-4 focus:ring-indigo-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <span className="flex items-center justify-center space-x-2">
-                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  <span>Signing in...</span>
-                </span>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-          </form>
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
 
-          <div className="mt-6 text-center">
-            <Link 
-              to="/admin-setup" 
-              className="text-sm text-indigo-600 hover:text-indigo-800 transition-colors"
-            >
-              First time? Setup Admin Account →
-            </Link>
+              {loginType === 'student' ? (
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Roll Number
+                  </label>
+                  <input
+                    type="text"
+                    name="rollNumber"
+                    value={formData.rollNumber}
+                    onChange={handleChange}
+                    placeholder="Enter roll number"
+                    className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                    required
+                  />
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="Enter email"
+                    className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                    required
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Enter password"
+                  className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all"
+              >
+                {isLoading ? "Signing in..." : "Sign In"}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center">
+              <Link
+                to="/admin-setup"
+                className="text-sm text-indigo-600 hover:text-indigo-800"
+              >
+                First time? Setup Admin →
+              </Link>
+            </div>
+
           </div>
         </div>
-      </div>
-      <div>
-        
-      </div>
-      <div className="fixed bottom-10 right-10 text-sm text-gray-500 text-right leading-6">
+
+        {/* Bottom Right Text */}
+        <div className="fixed bottom-10 right-10 text-sm text-gray-200 text-right leading-6">
           <p>Developed Under the Guidance of</p>
           <p className="font-medium">Dr. Mamta Lambet Mam</p>
 
@@ -173,6 +172,8 @@ const LoginPage = () => {
           <p>Ashish Kumar Dwivedi</p>
           <p>Hemant Kushwah</p>
           <p>Satyam Thakur</p>
+        </div>
+
       </div>
     </div>
   );
