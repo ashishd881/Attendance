@@ -162,6 +162,18 @@ const LoginPage = () => {
           </div>
         </div>
       </div>
+      <div>
+        
+      </div>
+      <div className="fixed bottom-10 right-10 text-sm text-gray-500 text-right leading-6">
+          <p>Developed Under the Guidance of</p>
+          <p className="font-medium">Dr. Mamta Lambet Mam</p>
+
+          <p className="mt-2">By -</p>
+          <p>Ashish Kumar Dwivedi</p>
+          <p>Hemant Kushwah</p>
+          <p>Satyam Thakur</p>
+      </div>
     </div>
   );
 };
