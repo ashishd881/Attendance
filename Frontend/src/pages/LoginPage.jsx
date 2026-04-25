@@ -169,9 +169,10 @@ const LoginPage = () => {
           <p className="font-medium">Dr. Mamta Lambet Mam</p>
 
           <p className="mt-2">By -</p>
-          <p>Ashish Kumar Dwivedi</p>
-          <p>Hemant Kushwah</p>
-          <p>Satyam Thakur</p>
+          <p>Batch of 2022-2026</p>
+          <p>Ashish Kumar Dwivedi - 6260421267</p>
+          <p>Hemant Kushwah - 9479519407</p>
+          <p>Satyam Thakur - 6268455730</p>
         </div>
 
       </div>
