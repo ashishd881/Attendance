@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://attendease-hk4x.onrender.com/api',
   headers: {
     'Content-Type': 'application/json'
   },
@@ -15,7 +15,6 @@ API.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log('API Request:', config.method.toUpperCase(), config.url);
     return config;
   },
   (error) => {
@@ -26,7 +25,6 @@ API.interceptors.request.use(
 // Handle responses
 API.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.status, response.data);
     return response;
   },
   (error) => {
