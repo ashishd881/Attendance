@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import API from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
-import { Link } from 'react-router-dom'; // ✅ FIXED
+import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -13,6 +13,7 @@ const AdminDashboard = () => {
   });
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchStats();
@@ -20,6 +21,8 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
+      setError(null);
+
       const [teachersRes, studentsRes, subjectsRes] = await Promise.all([
         API.get('/admin/teachers'),
         API.get('/admin/students'),
@@ -27,12 +30,14 @@ const AdminDashboard = () => {
       ]);
 
       setStats({
-        teachers: teachersRes.data.length,
-        students: studentsRes.data.length,
-        subjects: subjectsRes.data.length
+        teachers: teachersRes?.data?.length || 0,
+        students: studentsRes?.data?.length || 0,
+        subjects: subjectsRes?.data?.length || 0
       });
+
     } catch (error) {
       console.error('Error fetching stats:', error);
+      setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -40,18 +45,21 @@ const AdminDashboard = () => {
 
   const statCards = [
     {
+      id: 'teachers',
       label: 'Total Teachers',
       value: stats.teachers,
       icon: '👨‍🏫',
       bg: 'bg-blue-50'
     },
     {
+      id: 'students',
       label: 'Total Students',
       value: stats.students,
       icon: '👨‍🎓',
       bg: 'bg-green-50'
     },
     {
+      id: 'subjects',
       label: 'Total Subjects',
       value: stats.subjects,
       icon: '📚',
@@ -60,10 +68,10 @@ const AdminDashboard = () => {
   ];
 
   const quickActions = [
-    { label: 'Add Teacher', path: '/admin/teachers', icon: '➕👨‍🏫' },
-    { label: 'Add Subject', path: '/admin/subjects', icon: '➕📚' },
-    { label: 'View Students', path: '/admin/students', icon: '👀👨‍🎓' },
-    { label: 'Attendance Report', path: '/admin/attendance-report', icon: '📊' }
+    { id: 1, label: 'Add Teacher', path: '/admin/teachers', icon: '➕👨‍🏫' },
+    { id: 2, label: 'Add Subject', path: '/admin/subjects', icon: '➕📚' },
+    { id: 3, label: 'View Students', path: '/admin/students', icon: '👀👨‍🎓' },
+    { id: 4, label: 'Attendance Report', path: '/admin/attendance-report', icon: '📊' }
   ];
 
   // 🔄 Loading UI
@@ -75,37 +83,52 @@ const AdminDashboard = () => {
     );
   }
 
+  // ❌ Error UI
+  if (error) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-red-500">{error}</p>
+        <button
+          onClick={fetchStats}
+          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-lg"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-8 px-4 md:px-0">
+    <div className="space-y-8 px-2 sm:px-4">
 
       {/* 🔷 Welcome Section */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-2xl p-6 md:p-8 text-white">
-        <h1 className="text-2xl md:text-3xl font-bold">
-          Welcome back, {user?.name}! 👋
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-2xl p-5 md:p-8 text-white">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">
+          Welcome back, {user?.name || 'Admin'} 👋
         </h1>
         <p className="mt-2 text-indigo-100 text-sm md:text-lg">
-          Here's an overview of your attendance management system.
+          Here's an overview of your attendance system.
         </p>
       </div>
 
       {/* 📊 Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {statCards.map((card, index) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+        {statCards.map((card) => (
           <div
-            key={index}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow"
+            key={card.id}
+            className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-500">
+                <p className="text-xs sm:text-sm font-medium text-gray-500">
                   {card.label}
                 </p>
-                <p className="text-2xl md:text-3xl font-bold text-gray-800 mt-2">
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mt-1">
                   {card.value}
                 </p>
               </div>
 
-              <div className={`w-12 h-12 md:w-14 md:h-14 ${card.bg} rounded-xl flex items-center justify-center text-xl md:text-2xl`}>
+              <div className={`w-10 h-10 md:w-12 md:h-12 ${card.bg} rounded-lg flex items-center justify-center text-lg md:text-xl`}>
                 {card.icon}
               </div>
             </div>
@@ -114,19 +137,19 @@ const AdminDashboard = () => {
       </div>
 
       {/* ⚡ Quick Actions */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-4">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+        <h2 className="text-base md:text-lg font-semibold text-gray-800 mb-4">
           Quick Actions
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {quickActions.map((action, index) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+          {quickActions.map((action) => (
             <Link
-              key={index}
-              to={action.path} // ✅ FIXED (no <a href>)
-              className="flex items-center space-x-3 p-4 bg-gray-50 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 border border-gray-200 transition-all active:scale-95"
+              key={action.id}
+              to={action.path}
+              className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-indigo-50 border border-gray-200 transition active:scale-95"
             >
-              <span className="text-xl md:text-2xl">{action.icon}</span>
+              <span className="text-lg md:text-xl">{action.icon}</span>
               <span className="text-sm font-medium text-gray-700">
                 {action.label}
               </span>
