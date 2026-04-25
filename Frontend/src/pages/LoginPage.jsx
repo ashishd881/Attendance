@@ -163,17 +163,20 @@ const LoginPage = () => {
           </div>
         </div>
 
-        {/* Bottom Right Text */}
-        <div className="fixed bottom-10 right-10 text-sm text-gray-200 text-right leading-6">
-          <p>Developed Under the Guidance of</p>
-          <p className="font-medium">Dr. Mamta Lambet Mam</p>
+        {/* Footer */}
+      <div className="
+        w-full mt-8 text-xs sm:text-sm text-gray-200 text-center
+        md:fixed md:bottom-6 md:right-6 md:w-auto md:text-right md:mt-0
+      ">
+        <p>Developed Under the Guidance of</p>
+        <p className="font-medium">Dr. Mamta Lambet Mam</p>
 
-          <p className="mt-2">By -</p>
-          <p>Batch of 2022-2026</p>
-          <p>Ashish Kumar Dwivedi - 6260421267</p>
-          <p>Hemant Kushwah - 9479519407</p>
-          <p>Satyam Thakur - 6268455730</p>
-        </div>
+        <p className="mt-2">By -</p>
+        <p>Batch of 2022-2026</p>
+        <p>Ashish Kumar Dwivedi - 6260421267</p>
+        <p>Hemant Kushwah - 9479519407</p>
+        <p>Satyam Thakur - 6268455730</p>
+      </div>
 
       </div>
     </div>
