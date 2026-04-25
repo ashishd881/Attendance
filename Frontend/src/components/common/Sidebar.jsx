@@ -13,6 +13,7 @@ const Sidebar = () => {
     { path: '/admin/students', label: 'View Students', icon: '👨‍🎓' },
     { path: '/admin/attendance-report', label: 'Attendance Report', icon: '📋' },
     { path: '/admin/promote-students', label: 'Promote Students', icon: '🎓' }, // NEW
+    { path: '/admin/admin-setup', label: 'Create Admin', icon: '🛠️' },
   ];
 
   const teacherLinks = [

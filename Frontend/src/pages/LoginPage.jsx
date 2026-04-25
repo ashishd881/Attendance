@@ -151,14 +151,14 @@ const LoginPage = () => {
               </button>
             </form>
 
-            <div className="mt-6 text-center">
+            {/* <div className="mt-6 text-center">
               <Link
                 to="/admin-setup"
                 className="text-sm text-indigo-600 hover:text-indigo-800"
               >
                 First time? Setup Admin →
               </Link>
-            </div>
+            </div> */}
 
           </div>
         </div>

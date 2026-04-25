@@ -10,7 +10,7 @@ import Sidebar from './components/common/Sidebar';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
 import LoginPage from './pages/LoginPage';
-import AdminSetup from './pages/AdminSetup';
+// import AdminSetup from './pages/AdminSetup';
 
 import AdminDashboard from './components/admin/AdminDashboard';
 import ManageTeachers from './components/admin/ManageTeachers';
@@ -18,6 +18,7 @@ import ManageSubjects from './components/admin/ManageSubjects';
 import ViewStudents from './components/admin/ViewStudents';
 import AttendanceReport from './components/admin/AttendanceReport';
 import PromoteStudents from './components/admin/PromoteStudents'; // NEW
+import AdminSetup from './components/admin/AdminSetup';
 
 import TeacherDashboard from './components/teacher/TeacherDashboard';
 import MarkAttendance from './components/teacher/MarkAttendance';
@@ -50,8 +51,14 @@ const AppRoutes = () => {
       <Route path="/login" element={
         user ? <Navigate to={`/${user.role}/dashboard`} replace /> : <LoginPage />
       } />
-      <Route path="/admin-setup" element={<AdminSetup />} />
-
+      {/* <Route path="/admin-setup" element={<AdminSetup />} /> */}
+      <Route path="/admin/admin-setup" element={
+        <ProtectedRoute allowedRoles={['admin']}>
+          <DashboardLayout>
+            <AdminSetup />
+          </DashboardLayout>
+        </ProtectedRoute>
+      } />
       <Route path="/admin/dashboard" element={
         <ProtectedRoute allowedRoles={['admin']}>
           <DashboardLayout><AdminDashboard /></DashboardLayout>
